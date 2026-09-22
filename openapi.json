@@ -1,0 +1,418 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Ticket Sell API",
+    "description": "API for selling tickets. All responses follow the envelope pattern: `{ success, data, message, code }`.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "Default server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Authentication & token management"
+    },
+    {
+      "name": "Users",
+      "description": "User profile operations"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "UserPublic": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          }
+        },
+        "required": ["id", "name", "email"]
+      },
+      "AuthTokens": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Short-lived JWT access token",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "Long-lived refresh token",
+            "example": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..."
+          }
+        },
+        "required": ["token", "refreshToken"]
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "data": {
+            "description": "Response payload. Shape varies by endpoint."
+          },
+          "message": {
+            "type": "string",
+            "example": "Operation completed successfully"
+          },
+          "code": {
+            "type": "string",
+            "description": "Machine-readable success code in SCREAMING_SNAKE_CASE",
+            "example": "USER_CREATED"
+          }
+        },
+        "required": ["success", "data", "message", "code"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "data": {
+            "type": "array",
+            "items": {},
+            "example": []
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid credentials, verify the email or password"
+          },
+          "code": {
+            "type": "string",
+            "description": "Machine-readable error code in SCREAMING_SNAKE_CASE",
+            "example": "INVALID_CREDENTIALS"
+          }
+        },
+        "required": ["success", "data", "message", "code"]
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Missing or invalid Bearer token.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "success": false,
+              "data": [],
+              "message": "Authentication required. Please provide a valid Bearer token.",
+              "code": "UNAUTHORIZED"
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Request body failed schema validation.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "success": false,
+              "data": [],
+              "message": "One or more fields are invalid or missing.",
+              "code": "VALIDATION_ERROR"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register a new user",
+        "description": "Creates a new user account. The password is stored hashed and is never returned.",
+        "operationId": "authRegister",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "example": "John Doe"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "john@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 8,
+                    "example": "S3cr3tP@ss"
+                  }
+                },
+                "required": ["name", "email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                    "name": "John Doe",
+                    "email": "john@example.com"
+                  },
+                  "message": "User created successfully.",
+                  "code": "USER_CREATED"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email address is already associated with an existing account.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "success": false,
+                  "data": [],
+                  "message": "This email address is already in use. Please try a different one.",
+                  "code": "EMAIL_ALREADY_IN_USE"
+                }
+              }
+            }
+          },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Authenticate a user",
+        "description": "Validates credentials and returns a short-lived JWT access token and a long-lived refresh token.",
+        "operationId": "authLogin",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "john@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "S3cr3tP@ss"
+                  }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authentication successful. Tokens are returned.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    "refreshToken": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..."
+                  },
+                  "message": "Login successful.",
+                  "code": "LOGIN_SUCCESS"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credentials are incorrect.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "success": false,
+                  "data": [],
+                  "message": "Invalid credentials, verify the email or password.",
+                  "code": "INVALID_CREDENTIALS"
+                }
+              }
+            }
+          },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Refresh access token",
+        "description": "Exchanges a valid refresh token for a new short-lived JWT access token.",
+        "operationId": "authRefresh",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refreshToken": {
+                    "type": "string",
+                    "example": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..."
+                  }
+                },
+                "required": ["refreshToken"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token refreshed successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  },
+                  "message": "Token refreshed successfully.",
+                  "code": "TOKEN_REFRESHED"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The provided refresh token is expired, revoked, or malformed.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "success": false,
+                  "data": [],
+                  "message": "The refresh token is invalid or has expired. Please log in again.",
+                  "code": "INVALID_REFRESH_TOKEN"
+                }
+              }
+            }
+          },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Logout current session",
+        "description": "Invalidates the current access token and the provided refresh token. Requires a valid Bearer token in the Authorization header.",
+        "operationId": "authLogout",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refreshToken": {
+                    "type": "string",
+                    "example": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..."
+                  }
+                },
+                "required": ["refreshToken"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Logout successful. Both tokens have been invalidated.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": {
+                  "success": true,
+                  "data": [],
+                  "message": "Logged out successfully.",
+                  "code": "LOGOUT_SUCCESS"
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/users/me": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get authenticated user profile",
+        "description": "Returns the profile of the currently authenticated user identified by the Bearer token.",
+        "operationId": "usersGetMe",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "User profile returned successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                    "name": "John Doe",
+                    "email": "john@example.com"
+                  },
+                  "message": "User profile fetched successfully.",
+                  "code": "USER_FETCHED"
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    }
+  }
+}
