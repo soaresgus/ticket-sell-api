@@ -48,4 +48,24 @@ export class UsersService {
             throw error;
         }
     }
+
+    async me(userEmail: string) {
+        try {
+            const user = await this.usersRepository.findByEmail(userEmail);
+
+            if(!user) {
+                throw new AppError("The user associated with this access token no longer exists.", 401, "USER_NOT_FOUND");
+            }
+
+            return {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt
+            };
+        } catch (error) {
+            throw error;
+        }
+    }
 }
