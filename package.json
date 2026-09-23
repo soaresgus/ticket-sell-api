@@ -24,7 +24,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "k6:build": "tsc -p tsconfig.load.json",
-    "k6:run": "npm run k6:build && npx k6-cli run tests/load/dist/$TEST_FILE.js"
+    "k6:run": "npm run k6:build && k6 run ./src/tests/load/dist/%TEST_FILE%.js"
   },
   "dependencies": {
     "@fastify/jwt": "^10.2.2",
