@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "rootDir": "./src/tests/load",
+        "target": "ES2020",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "types": ["k6"],
+        "outDir": "./src/tests/load/dist"
+    },
+    "include": ["src/tests/load/**/*.ts"],
+    "exclude": ["node_modules"]
+}
