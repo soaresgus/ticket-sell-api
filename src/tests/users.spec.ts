@@ -126,4 +126,103 @@ describe('Authentication', () => {
             });
         })
     })
+
+    describe('Login', () => {
+        describe('Success', () => {
+            it('should login a user and return a token with 200 status code', async () => {
+                const email = `jhon.doe${Math.random()}@example.com`;
+
+                const user = {
+                    name: 'John Doe',
+                    email,
+                    password: 'password',
+                }
+
+                await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/auth/register',
+                    payload: {
+                        name: user.name,
+                        email: user.email,
+                        password: user.password,
+                    },
+                });
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/auth/login',
+                    payload: {
+                        email: user.email,
+                        password: user.password,
+                    },
+                });
+
+                expect(response.statusCode).toBe(200);
+                expect(response.json()).toMatchObject({
+                    success: true,
+                    code: 'LOGIN_SUCCESS',
+                    data: {
+                        token: expect.any(String),
+                        refreshToken: expect.any(String),
+                    },
+                });
+                expect(response.json().data.token).toBeDefined();
+                expect(response.json().data.refreshToken).toBeDefined();
+            })
+        })
+
+        describe('Failure', () => {
+            it('should not login a user with an invalid email and return a validation error with 422 status code', async () => {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/auth/login',
+                    payload: {
+                        email: 'invalid-email',
+                        password: 'password',
+                    },
+                });
+
+                expect(response.statusCode).toBe(422);
+                expect(response.json()).toMatchObject({
+                    success: false,
+                    code: 'VALIDATION_ERROR',
+                });
+            });
+
+            it('should not login a user with incorrect password and return a invalid credentials error with 401 status code', async () => {
+                const email = `jhon.doe${Math.random()}@example.com`;
+
+                const user = {
+                    name: 'John Doe',
+                    email,
+                    password: 'password',
+                }
+
+                await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/auth/register',
+                    payload: {
+                        name: user.name,
+                        email: user.email,
+                        password: user.password,
+                    },
+                });
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/auth/login',
+                    payload: {
+                        email: user.email,
+                        password: 'incorrect-password',
+                    },
+                });
+
+                expect(response.statusCode).toBe(401);
+                expect(response.json()).toMatchObject({
+                    success: false,
+                    code: 'INVALID_CREDENTIALS',
+                });
+            })
+        })
+    })
 });
