@@ -19,6 +19,10 @@
     {
       "name": "Users",
       "description": "User profile operations"
+    },
+    {
+      "name": "Tickets",
+      "description": "Ticket catalog, reservations, and purchases"
     }
   ],
   "components": {
@@ -111,6 +115,187 @@
           }
         },
         "required": ["success", "data", "message", "code"]
+      },
+      "Ticket": {
+        "type": "object",
+        "description": "A ticket product. `quantity` is the total stock. Status is not a property of the product; availability is derived from reservations and purchases.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Cuid identifier",
+            "example": "clx0ticket0001abcdefghijk"
+          },
+          "title": {
+            "type": "string",
+            "example": "Rock Festival 2026"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "Main stage, general admission"
+          },
+          "price": {
+            "type": "number",
+            "format": "float",
+            "example": 150
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total stock",
+            "example": 100
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-09-24T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-09-24T12:00:00.000Z"
+          }
+        },
+        "required": ["id", "title", "description", "price", "quantity", "createdAt", "updatedAt"]
+      },
+      "TicketQuantityByStatus": {
+        "type": "object",
+        "description": "`reserved` is the sum of active reservations, `sold` is the sum of completed purchases, and `available` is `Ticket.quantity` minus those two.",
+        "properties": {
+          "available": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 80
+          },
+          "reserved": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 5
+          },
+          "sold": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 15
+          }
+        },
+        "required": ["available", "reserved", "sold"]
+      },
+      "TicketReservation": {
+        "type": "object",
+        "description": "An open hold created by buy. It is removed when the user cancels or confirms the purchase.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Cuid identifier",
+            "example": "clx0reserv0001abcdefghijk"
+          },
+          "ticketId": {
+            "type": "string",
+            "example": "clx0ticket0001abcdefghijk"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 2
+          },
+          "status": {
+            "type": "string",
+            "enum": ["RESERVED"],
+            "example": "RESERVED"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-09-24T12:30:00.000Z"
+          },
+          "ticket": {
+            "$ref": "#/components/schemas/Ticket"
+          }
+        },
+        "required": ["id", "ticketId", "userId", "quantity", "status", "createdAt", "ticket"]
+      },
+      "TicketPurchase": {
+        "type": "object",
+        "description": "A completed purchase. Created when a reservation is confirmed.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Cuid identifier",
+            "example": "clx0purch00001abcdefghijk"
+          },
+          "ticketId": {
+            "type": "string",
+            "example": "clx0ticket0001abcdefghijk"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 2
+          },
+          "status": {
+            "type": "string",
+            "enum": ["SOLD"],
+            "example": "SOLD"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-09-24T12:45:00.000Z"
+          },
+          "ticket": {
+            "$ref": "#/components/schemas/Ticket"
+          }
+        },
+        "required": ["id", "ticketId", "userId", "quantity", "status", "createdAt", "ticket"]
+      },
+      "UserTicket": {
+        "type": "object",
+        "description": "An open reservation or a completed purchase belonging to the authenticated user.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Cuid identifier of the reservation or the purchase",
+            "example": "clx0reserv0001abcdefghijk"
+          },
+          "ticketId": {
+            "type": "string",
+            "example": "clx0ticket0001abcdefghijk"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 2
+          },
+          "status": {
+            "type": "string",
+            "enum": ["RESERVED", "SOLD"],
+            "example": "RESERVED"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-09-24T12:30:00.000Z"
+          },
+          "ticket": {
+            "$ref": "#/components/schemas/Ticket"
+          }
+        },
+        "required": ["id", "ticketId", "userId", "quantity", "status", "createdAt", "ticket"]
       }
     },
     "responses": {
@@ -411,6 +596,602 @@
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/users/me/tickets": {
+      "get": {
+        "tags": ["Tickets"],
+        "summary": "List the authenticated user's tickets",
+        "description": "Returns open reservations and completed purchases for the user identified by the Bearer token. `RESERVED` items come from reservations; `SOLD` items come from purchases.",
+        "operationId": "usersGetMyTickets",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Reservations and purchases returned successfully. `data` is an empty array when the user has neither.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "id": "clx0reserv0001abcdefghijk",
+                      "ticketId": "clx0ticket0001abcdefghijk",
+                      "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                      "quantity": 2,
+                      "status": "RESERVED",
+                      "createdAt": "2026-09-24T12:30:00.000Z",
+                      "ticket": {
+                        "id": "clx0ticket0001abcdefghijk",
+                        "title": "Rock Festival 2026",
+                        "description": "Main stage, general admission",
+                        "price": 150,
+                        "quantity": 100,
+                        "createdAt": "2026-09-24T12:00:00.000Z",
+                        "updatedAt": "2026-09-24T12:00:00.000Z"
+                      }
+                    },
+                    {
+                      "id": "clx0purch00001abcdefghijk",
+                      "ticketId": "clx0ticket0001abcdefghijk",
+                      "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                      "quantity": 1,
+                      "status": "SOLD",
+                      "createdAt": "2026-09-24T12:45:00.000Z",
+                      "ticket": {
+                        "id": "clx0ticket0001abcdefghijk",
+                        "title": "Rock Festival 2026",
+                        "description": "Main stage, general admission",
+                        "price": 150,
+                        "quantity": 100,
+                        "createdAt": "2026-09-24T12:00:00.000Z",
+                        "updatedAt": "2026-09-24T12:00:00.000Z"
+                      }
+                    }
+                  ],
+                  "message": "User tickets fetched successfully.",
+                  "code": "USER_TICKETS_FETCHED"
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/tickets": {
+      "get": {
+        "tags": ["Tickets"],
+        "summary": "List tickets",
+        "description": "Returns the ticket catalog. `data` is an empty array when there are no tickets.",
+        "operationId": "ticketsList",
+        "responses": {
+          "200": {
+            "description": "Ticket catalog returned successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "id": "clx0ticket0001abcdefghijk",
+                      "title": "Rock Festival 2026",
+                      "description": "Main stage, general admission",
+                      "price": 150,
+                      "quantity": 100,
+                      "createdAt": "2026-09-24T12:00:00.000Z",
+                      "updatedAt": "2026-09-24T12:00:00.000Z"
+                    }
+                  ],
+                  "message": "Tickets fetched successfully.",
+                  "code": "TICKETS_FETCHED"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tickets/{id}": {
+      "get": {
+        "tags": ["Tickets"],
+        "summary": "Get a ticket",
+        "description": "Returns a ticket product. `quantity` is the total stock.",
+        "operationId": "ticketsGetById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Ticket cuid",
+            "schema": {
+              "type": "string",
+              "example": "clx0ticket0001abcdefghijk"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ticket returned successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": "clx0ticket0001abcdefghijk",
+                    "title": "Rock Festival 2026",
+                    "description": "Main stage, general admission",
+                    "price": 150,
+                    "quantity": 100,
+                    "createdAt": "2026-09-24T12:00:00.000Z",
+                    "updatedAt": "2026-09-24T12:00:00.000Z"
+                  },
+                  "message": "Ticket fetched successfully.",
+                  "code": "TICKET_FETCHED"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No ticket exists with the given id.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "success": false,
+                  "data": [],
+                  "message": "Ticket not found.",
+                  "code": "TICKET_NOT_FOUND"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tickets/{id}/quantity": {
+      "get": {
+        "tags": ["Tickets"],
+        "summary": "Get ticket quantity by status",
+        "description": "Returns how many units are available, reserved, and sold. `reserved` is the sum of active reservations, `sold` is the sum of completed purchases, and `available` is the ticket's total stock minus those two.",
+        "operationId": "ticketsGetQuantity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Ticket cuid",
+            "schema": {
+              "type": "string",
+              "example": "clx0ticket0001abcdefghijk"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quantity by status returned successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "available": 80,
+                    "reserved": 5,
+                    "sold": 15
+                  },
+                  "message": "Ticket quantity fetched successfully.",
+                  "code": "TICKET_QUANTITY_FETCHED"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No ticket exists with the given id.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "success": false,
+                  "data": [],
+                  "message": "Ticket not found.",
+                  "code": "TICKET_NOT_FOUND"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tickets/{id}/reservation": {
+      "get": {
+        "tags": ["Tickets"],
+        "summary": "Get the authenticated user's reservation",
+        "description": "Returns the open reservation of the user identified by the Bearer token for this ticket. A completed purchase is not a reservation.",
+        "operationId": "ticketsGetReservation",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Ticket cuid",
+            "schema": {
+              "type": "string",
+              "example": "clx0ticket0001abcdefghijk"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reservation returned successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": "clx0reserv0001abcdefghijk",
+                    "ticketId": "clx0ticket0001abcdefghijk",
+                    "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                    "quantity": 2,
+                    "status": "RESERVED",
+                    "createdAt": "2026-09-24T12:30:00.000Z",
+                    "ticket": {
+                      "id": "clx0ticket0001abcdefghijk",
+                      "title": "Rock Festival 2026",
+                      "description": "Main stage, general admission",
+                      "price": 150,
+                      "quantity": 100,
+                      "createdAt": "2026-09-24T12:00:00.000Z",
+                      "updatedAt": "2026-09-24T12:00:00.000Z"
+                    }
+                  },
+                  "message": "Ticket reservation fetched successfully.",
+                  "code": "TICKET_RESERVATION_FETCHED"
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": {
+            "description": "The ticket does not exist, or the authenticated user has no open reservation for it.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "ticketNotFound": {
+                    "summary": "Ticket does not exist",
+                    "value": {
+                      "success": false,
+                      "data": [],
+                      "message": "Ticket not found.",
+                      "code": "TICKET_NOT_FOUND"
+                    }
+                  },
+                  "reservationNotFound": {
+                    "summary": "No open reservation for this user",
+                    "value": {
+                      "success": false,
+                      "data": [],
+                      "message": "Reservation not found.",
+                      "code": "RESERVATION_NOT_FOUND"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tickets/{id}/buy": {
+      "post": {
+        "tags": ["Tickets"],
+        "summary": "Reserve tickets",
+        "description": "Starts a reservation for the user identified by the Bearer token. Does not create a purchase. `quantity` defaults to 1 when the body is omitted.",
+        "operationId": "ticketsBuy",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Ticket cuid",
+            "schema": {
+              "type": "string",
+              "example": "clx0ticket0001abcdefghijk"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "quantity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1,
+                    "example": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reservation created. Status is RESERVED.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": "clx0reserv0001abcdefghijk",
+                    "ticketId": "clx0ticket0001abcdefghijk",
+                    "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                    "quantity": 1,
+                    "status": "RESERVED",
+                    "createdAt": "2026-09-24T12:30:00.000Z",
+                    "ticket": {
+                      "id": "clx0ticket0001abcdefghijk",
+                      "title": "Rock Festival 2026",
+                      "description": "Main stage, general admission",
+                      "price": 150,
+                      "quantity": 100,
+                      "createdAt": "2026-09-24T12:00:00.000Z",
+                      "updatedAt": "2026-09-24T12:00:00.000Z"
+                    }
+                  },
+                  "message": "Ticket reserved successfully.",
+                  "code": "TICKET_RESERVED"
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": {
+            "description": "No ticket exists with the given id.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "success": false,
+                  "data": [],
+                  "message": "Ticket not found.",
+                  "code": "TICKET_NOT_FOUND"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "There is not enough stock, or the user already has an open reservation for this ticket.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "unavailable": {
+                    "summary": "Not enough available units",
+                    "value": {
+                      "success": false,
+                      "data": [],
+                      "message": "Not enough tickets available.",
+                      "code": "TICKET_UNAVAILABLE"
+                    }
+                  },
+                  "alreadyReserved": {
+                    "summary": "User already has an open reservation",
+                    "value": {
+                      "success": false,
+                      "data": [],
+                      "message": "You already have a reservation for this ticket.",
+                      "code": "TICKET_ALREADY_RESERVED"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/tickets/{id}/confirm": {
+      "post": {
+        "tags": ["Tickets"],
+        "summary": "Confirm a reservation",
+        "description": "Confirms the open reservation of the user identified by the Bearer token. Creates a purchase with status SOLD and removes the reservation.",
+        "operationId": "ticketsConfirm",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Ticket cuid",
+            "schema": {
+              "type": "string",
+              "example": "clx0ticket0001abcdefghijk"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Purchase confirmed. Status is SOLD.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": "clx0purch00001abcdefghijk",
+                    "ticketId": "clx0ticket0001abcdefghijk",
+                    "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                    "quantity": 2,
+                    "status": "SOLD",
+                    "createdAt": "2026-09-24T12:45:00.000Z",
+                    "ticket": {
+                      "id": "clx0ticket0001abcdefghijk",
+                      "title": "Rock Festival 2026",
+                      "description": "Main stage, general admission",
+                      "price": 150,
+                      "quantity": 100,
+                      "createdAt": "2026-09-24T12:00:00.000Z",
+                      "updatedAt": "2026-09-24T12:00:00.000Z"
+                    }
+                  },
+                  "message": "Ticket purchase confirmed successfully.",
+                  "code": "TICKET_CONFIRMED"
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": {
+            "description": "The ticket does not exist, or the authenticated user has no open reservation for it.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "ticketNotFound": {
+                    "summary": "Ticket does not exist",
+                    "value": {
+                      "success": false,
+                      "data": [],
+                      "message": "Ticket not found.",
+                      "code": "TICKET_NOT_FOUND"
+                    }
+                  },
+                  "reservationNotFound": {
+                    "summary": "No open reservation for this user",
+                    "value": {
+                      "success": false,
+                      "data": [],
+                      "message": "Reservation not found.",
+                      "code": "RESERVATION_NOT_FOUND"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The authenticated user already has a completed purchase for this ticket.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "success": false,
+                  "data": [],
+                  "message": "This ticket has already been purchased.",
+                  "code": "TICKET_ALREADY_SOLD"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tickets/{id}/cancel": {
+      "post": {
+        "tags": ["Tickets"],
+        "summary": "Cancel a reservation",
+        "description": "Deletes the open reservation of the user identified by the Bearer token and returns that quantity to the available stock. Does not change a completed purchase.",
+        "operationId": "ticketsCancel",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Ticket cuid",
+            "schema": {
+              "type": "string",
+              "example": "clx0ticket0001abcdefghijk"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reservation cancelled. The returned reservation is the one that was removed.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": "clx0reserv0001abcdefghijk",
+                    "ticketId": "clx0ticket0001abcdefghijk",
+                    "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                    "quantity": 2,
+                    "status": "RESERVED",
+                    "createdAt": "2026-09-24T12:30:00.000Z",
+                    "ticket": {
+                      "id": "clx0ticket0001abcdefghijk",
+                      "title": "Rock Festival 2026",
+                      "description": "Main stage, general admission",
+                      "price": 150,
+                      "quantity": 100,
+                      "createdAt": "2026-09-24T12:00:00.000Z",
+                      "updatedAt": "2026-09-24T12:00:00.000Z"
+                    }
+                  },
+                  "message": "Ticket reservation cancelled successfully.",
+                  "code": "TICKET_RESERVATION_CANCELLED"
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": {
+            "description": "The ticket does not exist, or the authenticated user has no open reservation for it.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "ticketNotFound": {
+                    "summary": "Ticket does not exist",
+                    "value": {
+                      "success": false,
+                      "data": [],
+                      "message": "Ticket not found.",
+                      "code": "TICKET_NOT_FOUND"
+                    }
+                  },
+                  "reservationNotFound": {
+                    "summary": "No open reservation for this user",
+                    "value": {
+                      "success": false,
+                      "data": [],
+                      "message": "Reservation not found.",
+                      "code": "RESERVATION_NOT_FOUND"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The purchase was already confirmed, so the reservation can no longer be cancelled.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "success": false,
+                  "data": [],
+                  "message": "This ticket has already been purchased.",
+                  "code": "TICKET_ALREADY_SOLD"
+                }
+              }
+            }
+          }
         }
       }
     }

@@ -8,12 +8,14 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 String              @id @default(uuid())
+  name               String
+  email              String              @unique
+  password           String
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  ticketPurchasers   TicketPurchaser[]
+  ticketReservations TicketReservation[]
 
   @@map("users")
 }
@@ -25,14 +27,48 @@ enum TicketStatus {
 }
 
 model Ticket {
-  id          String       @id @default(cuid())
-  title       String
-  description String?
-  status      TicketStatus @default(AVAILABLE)
-  price       Float
-  quantity    Int
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id                 String              @id @default(cuid())
+  title              String
+  description        String?
+  status             TicketStatus        @default(AVAILABLE)
+  price              Float
+  quantity           Int
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  ticketPurchasers   TicketPurchaser[]
+  ticketReservations TicketReservation[]
 
   @@map("tickets")
+}
+
+model TicketReservation {
+  id        String   @id @default(cuid())
+  ticketId  String
+  userId    String
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Ticket Ticket @relation(fields: [ticketId], references: [id])
+  User   User   @relation(fields: [userId], references: [id])
+
+  @@index([ticketId])
+  @@index([userId])
+  @@map("ticket_reservations")
+}
+
+model TicketPurchaser {
+  id        String   @id @default(cuid())
+  ticketId  String
+  userId    String
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Ticket Ticket @relation(fields: [ticketId], references: [id])
+  User   User   @relation(fields: [userId], references: [id])
+
+  @@index([ticketId])
+  @@index([userId])
+  @@map("ticket_purchasers")
 }
