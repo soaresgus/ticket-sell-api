@@ -1,0 +1,129 @@
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { buildApp } from '../app.js';
+
+describe('Authentication', () => {
+    const app = buildApp();
+
+    beforeAll(async () => {
+        await app.ready();
+    })
+
+    afterAll(async () => {
+        await app.close();
+    })
+
+    describe('Register', () => {
+        describe('Success', () => {
+            it('should create a new user and not return the password with 201 status code', async () => {
+                const email = `jhon.doe${Math.random()}@example.com`;
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/auth/register',
+                    payload: {
+                        name: 'John Doe',
+                        email,
+                        password: 'password',
+                    },
+                });
+
+                expect(response.statusCode).toBe(201);
+                expect(response.json()).toMatchObject({
+                    success: true,
+                    code: 'USER_CREATED',
+                    data: {
+                        name: 'John Doe',
+                        email,
+                    }
+                });
+                expect(response.json().data.password).toBeUndefined();
+            })
+        })
+
+        describe('Failure', () => {
+            it('should not create a new user with an invalid email and return a validation error with 422 status code', async () => {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/auth/register',
+                    payload: {
+                        name: 'John Doe',
+                        email: 'invalid-email',
+                        password: 'password',
+                    },
+                });
+
+                expect(response.statusCode).toBe(422);
+                expect(response.json()).toMatchObject({
+                    success: false,
+                    code: 'VALIDATION_ERROR',
+                });
+            })
+
+            it('should not create a new user with a password less than 8 characters and return a validation error with 422 status code', async () => {
+                const email = `jhon.doe${Math.random()}@example.com`;
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/auth/register',
+                    payload: {
+                        name: 'John Doe',
+                        email,
+                        password: 'pass',
+                    },
+                });
+
+                expect(response.statusCode).toBe(422);
+                expect(response.json()).toMatchObject({
+                    success: false,
+                    code: 'VALIDATION_ERROR',
+                });
+            });
+
+            it('should not create a new user with a required field missing and return a validation error with 422 status code', async () => {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/auth/register',
+                    payload: {
+                        name: 'John Doe',
+                    },
+                });
+
+                expect(response.statusCode).toBe(422);
+                expect(response.json()).toMatchObject({
+                    success: false,
+                    code: 'VALIDATION_ERROR',
+                });
+            });
+
+            it('should not create a new user with a duplicate email and return a conflict error with 409 status code', async () => {
+                const email = `jhon.doe${Math.random()}@example.com`;
+
+                await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/auth/register',
+                    payload: {
+                        name: 'John Doe',
+                        email,
+                        password: 'password',
+                    },
+                });
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/auth/register',
+                    payload: {
+                        name: 'John Doe',
+                        email,
+                        password: 'password',
+                    },
+                });
+
+                expect(response.statusCode).toBe(409);
+                expect(response.json()).toMatchObject({
+                    success: false,
+                    code: 'USER_ALREADY_EXISTS',
+                });
+            });
+        })
+    })
+});
