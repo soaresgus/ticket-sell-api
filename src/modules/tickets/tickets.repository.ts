@@ -1,4 +1,5 @@
-import type { PrismaClient, Ticket, TicketReservation, TicketStatus } from "../../generated/prisma/client.js";
+import { TicketStatus, type PrismaClient, type Ticket, type TicketReservation } from "../../generated/prisma/client.js";
+import type { CreateTicketDTO } from "./tickets.schema.js";
 
 export class TicketsRepository {
     constructor(private readonly prisma: PrismaClient) { }
@@ -15,21 +16,26 @@ export class TicketsRepository {
         })
     }
 
-    async getTicketQuantityByStatus(id: string, status: TicketStatus): Promise<number> {
-        return this.prisma.ticket.count({
-            where: {
-                id,
-                status,
-            },
-        })
-    }
-
     async getReservationByTicketIdAndUserId(ticketId: string, userId: string): Promise<TicketReservation | null> {
         return this.prisma.ticketReservation.findFirst({
             where: {
                 ticketId,
                 userId,
             },
-        })
+            include: {
+                Ticket: true
+            },
+        });
+    }
+
+    async createTicket(data: CreateTicketDTO): Promise<Ticket> {
+        return this.prisma.ticket.create({
+            data: {
+                title: data.title,
+                description: data.description ?? null,
+                price: data.price,
+                quantity: data.quantity,
+            },
+        });
     }
 }

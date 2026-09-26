@@ -30,7 +30,6 @@ model Ticket {
   id                 String              @id @default(cuid())
   title              String
   description        String?
-  status             TicketStatus        @default(AVAILABLE)
   price              Float
   quantity           Int
   createdAt          DateTime            @default(now())

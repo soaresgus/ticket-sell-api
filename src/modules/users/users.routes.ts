@@ -5,6 +5,7 @@ import { createUserSchema, loginSchema, refreshTokenSchema } from "./users.schem
 import { ZodError } from "zod";
 import { AppError } from "../../errors/app-error.js";
 import { config } from "../../config.js";
+import { TicketStatus } from "../../generated/prisma/enums.js";
 
 export default async function usersRoutes(fastify: FastifyInstance) {
     const usersRepository = new UsersRepository(fastify.prisma);
@@ -57,12 +58,12 @@ export default async function usersRoutes(fastify: FastifyInstance) {
                 const user = await usersService.login({ email, password });
 
                 const accessToken = fastify.jwt.sign(
-                    { sub: user.id, email: user.email},
+                    { sub: user.id, email: user.email },
                     { expiresIn: config.jwtExpiresIn }
                 );
 
                 const refreshToken = fastify.jwt.sign(
-                    { sub: user.id, email: user.email},
+                    { sub: user.id, email: user.email },
                     { expiresIn: config.jwtRefreshExpiresIn }
                 );
 
@@ -84,7 +85,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
                         code: error.code
                     });
                 }
-                if(error instanceof ZodError) {
+                if (error instanceof ZodError) {
                     return reply.status(422).send({
                         success: false,
                         data: null,
@@ -111,7 +112,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
 
                 const decoded = fastify.jwt.verify(refreshToken) as { sub: string; email: string };
 
-                if(!decoded) {
+                if (!decoded) {
                     return reply.status(401).send({
                         success: false,
                         data: null,
@@ -122,7 +123,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
 
                 const user = await usersRepository.findByEmail(decoded.email);
 
-                if(!user) {
+                if (!user) {
                     return reply.status(401).send({
                         success: false,
                         data: null,
@@ -131,7 +132,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
                     });
                 }
 
-                const accessToken = fastify.jwt.sign({ sub: user.id, email: user.email})
+                const accessToken = fastify.jwt.sign({ sub: user.id, email: user.email })
 
                 return reply.status(200).send({
                     success: true,
@@ -150,7 +151,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
                         code: error.code
                     });
                 }
-                if(error instanceof ZodError) {
+                if (error instanceof ZodError) {
                     return reply.status(422).send({
                         success: false,
                         data: null,
@@ -174,7 +175,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
         onRequest: [fastify.authenticate],
         handler: async (request, reply) => {
             try {
-                if(!request.headers.authorization) {
+                if (!request.headers.authorization) {
                     return reply.status(401).send({
                         success: false,
                         data: null,
@@ -190,6 +191,38 @@ export default async function usersRoutes(fastify: FastifyInstance) {
                     data: user,
                     message: "User profile fetched successfully",
                     code: "USER_FETCHED"
+                });
+            } catch (error) {
+                if (error instanceof AppError) {
+                    return reply.status(error.statusCode).send({
+                        success: false,
+                        data: null,
+                        message: error.message,
+                        code: error.code
+                    });
+                }
+                request.log.error(error);
+                return reply.status(500).send({
+                    success: false,
+                    data: null,
+                    message: "Internal server error",
+                    code: "INTERNAL_SERVER_ERROR"
+                });
+            }
+        }
+    });
+
+    fastify.get("/users/me/tickets", {
+        onRequest: [fastify.authenticate],
+        handler: async (request, reply) => {
+            try {
+                const tickets = await usersService.getTicketsByUserId(request.user.id);
+
+                return reply.status(200).send({
+                    success: true,
+                    data: tickets,
+                    message: "User tickets fetched successfully.",
+                    code: "USER_TICKETS_FETCHED"
                 });
             } catch (error) {
                 if (error instanceof AppError) {

@@ -4,6 +4,7 @@ import prismaPlugin from './plugins/prisma.js';
 import usersRoutes from './modules/users/users.routes.js';
 import jwtPlugin from './plugins/jwt.js';
 import rateLimitPlugin from './plugins/rate-limit.js';
+import ticketsRoutes from './modules/tickets/tickets.routes.js';
 
 export function buildApp(logger = false) {
   const app = Fastify({ logger });
@@ -13,6 +14,7 @@ export function buildApp(logger = false) {
   app.register(rateLimitPlugin);
   app.register(healthRoutes, { prefix: '/api/v1' });
   app.register(usersRoutes, { prefix: '/api/v1' });
+  app.register(ticketsRoutes, { prefix: '/api/v1' });
 
   return app;
 }

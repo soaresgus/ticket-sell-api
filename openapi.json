@@ -52,7 +52,11 @@
             "example": "john@example.com"
           }
         },
-        "required": ["id", "name", "email"]
+        "required": [
+          "id",
+          "name",
+          "email"
+        ]
       },
       "AuthTokens": {
         "type": "object",
@@ -68,7 +72,10 @@
             "example": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..."
           }
         },
-        "required": ["token", "refreshToken"]
+        "required": [
+          "token",
+          "refreshToken"
+        ]
       },
       "SuccessResponse": {
         "type": "object",
@@ -90,7 +97,12 @@
             "example": "USER_CREATED"
           }
         },
-        "required": ["success", "data", "message", "code"]
+        "required": [
+          "success",
+          "data",
+          "message",
+          "code"
+        ]
       },
       "ErrorResponse": {
         "type": "object",
@@ -114,7 +126,12 @@
             "example": "INVALID_CREDENTIALS"
           }
         },
-        "required": ["success", "data", "message", "code"]
+        "required": [
+          "success",
+          "data",
+          "message",
+          "code"
+        ]
       },
       "Ticket": {
         "type": "object",
@@ -156,7 +173,15 @@
             "example": "2026-09-24T12:00:00.000Z"
           }
         },
-        "required": ["id", "title", "description", "price", "quantity", "createdAt", "updatedAt"]
+        "required": [
+          "id",
+          "title",
+          "description",
+          "price",
+          "quantity",
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "TicketQuantityByStatus": {
         "type": "object",
@@ -178,7 +203,11 @@
             "example": 15
           }
         },
-        "required": ["available", "reserved", "sold"]
+        "required": [
+          "available",
+          "reserved",
+          "sold"
+        ]
       },
       "TicketReservation": {
         "type": "object",
@@ -205,7 +234,9 @@
           },
           "status": {
             "type": "string",
-            "enum": ["RESERVED"],
+            "enum": [
+              "RESERVED"
+            ],
             "example": "RESERVED"
           },
           "createdAt": {
@@ -217,7 +248,15 @@
             "$ref": "#/components/schemas/Ticket"
           }
         },
-        "required": ["id", "ticketId", "userId", "quantity", "status", "createdAt", "ticket"]
+        "required": [
+          "id",
+          "ticketId",
+          "userId",
+          "quantity",
+          "status",
+          "createdAt",
+          "ticket"
+        ]
       },
       "TicketPurchase": {
         "type": "object",
@@ -244,7 +283,9 @@
           },
           "status": {
             "type": "string",
-            "enum": ["SOLD"],
+            "enum": [
+              "SOLD"
+            ],
             "example": "SOLD"
           },
           "createdAt": {
@@ -256,7 +297,15 @@
             "$ref": "#/components/schemas/Ticket"
           }
         },
-        "required": ["id", "ticketId", "userId", "quantity", "status", "createdAt", "ticket"]
+        "required": [
+          "id",
+          "ticketId",
+          "userId",
+          "quantity",
+          "status",
+          "createdAt",
+          "ticket"
+        ]
       },
       "UserTicket": {
         "type": "object",
@@ -283,7 +332,10 @@
           },
           "status": {
             "type": "string",
-            "enum": ["RESERVED", "SOLD"],
+            "enum": [
+              "RESERVED",
+              "SOLD"
+            ],
             "example": "RESERVED"
           },
           "createdAt": {
@@ -295,7 +347,15 @@
             "$ref": "#/components/schemas/Ticket"
           }
         },
-        "required": ["id", "ticketId", "userId", "quantity", "status", "createdAt", "ticket"]
+        "required": [
+          "id",
+          "ticketId",
+          "userId",
+          "quantity",
+          "status",
+          "createdAt",
+          "ticket"
+        ]
       }
     },
     "responses": {
@@ -303,7 +363,9 @@
         "description": "Missing or invalid Bearer token.",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
             "example": {
               "success": false,
               "data": [],
@@ -317,7 +379,9 @@
         "description": "Request body failed schema validation.",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
             "example": {
               "success": false,
               "data": [],
@@ -332,7 +396,9 @@
   "paths": {
     "/auth/register": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Register a new user",
         "description": "Creates a new user account. The password is stored hashed and is never returned.",
         "operationId": "authRegister",
@@ -360,7 +426,11 @@
                     "example": "S3cr3tP@ss"
                   }
                 },
-                "required": ["name", "email", "password"]
+                "required": [
+                  "name",
+                  "email",
+                  "password"
+                ]
               }
             }
           }
@@ -370,7 +440,9 @@
             "description": "User registered successfully.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
                 "example": {
                   "success": true,
                   "data": {
@@ -388,7 +460,9 @@
             "description": "Email address is already associated with an existing account.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "example": {
                   "success": false,
                   "data": [],
@@ -398,13 +472,17 @@
               }
             }
           },
-          "422": { "$ref": "#/components/responses/ValidationError" }
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
         }
       }
     },
     "/auth/login": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Authenticate a user",
         "description": "Validates credentials and returns a short-lived JWT access token and a long-lived refresh token.",
         "operationId": "authLogin",
@@ -426,7 +504,10 @@
                     "example": "S3cr3tP@ss"
                   }
                 },
-                "required": ["email", "password"]
+                "required": [
+                  "email",
+                  "password"
+                ]
               }
             }
           }
@@ -436,7 +517,9 @@
             "description": "Authentication successful. Tokens are returned.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
                 "example": {
                   "success": true,
                   "data": {
@@ -453,7 +536,9 @@
             "description": "Credentials are incorrect.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "example": {
                   "success": false,
                   "data": [],
@@ -463,13 +548,17 @@
               }
             }
           },
-          "422": { "$ref": "#/components/responses/ValidationError" }
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
         }
       }
     },
     "/auth/refresh": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Refresh access token",
         "description": "Exchanges a valid refresh token for a new short-lived JWT access token.",
         "operationId": "authRefresh",
@@ -485,7 +574,9 @@
                     "example": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..."
                   }
                 },
-                "required": ["refreshToken"]
+                "required": [
+                  "refreshToken"
+                ]
               }
             }
           }
@@ -495,7 +586,9 @@
             "description": "Token refreshed successfully.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
                 "example": {
                   "success": true,
                   "data": {
@@ -511,7 +604,9 @@
             "description": "The provided refresh token is expired, revoked, or malformed.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "example": {
                   "success": false,
                   "data": [],
@@ -521,17 +616,25 @@
               }
             }
           },
-          "422": { "$ref": "#/components/responses/ValidationError" }
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
         }
       }
     },
     "/auth/logout": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Logout current session",
         "description": "Invalidates the current access token and the provided refresh token. Requires a valid Bearer token in the Authorization header.",
         "operationId": "authLogout",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -544,7 +647,9 @@
                     "example": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..."
                   }
                 },
-                "required": ["refreshToken"]
+                "required": [
+                  "refreshToken"
+                ]
               }
             }
           }
@@ -554,7 +659,9 @@
             "description": "Logout successful. Both tokens have been invalidated.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
                 "example": {
                   "success": true,
                   "data": [],
@@ -564,24 +671,36 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "422": { "$ref": "#/components/responses/ValidationError" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
         }
       }
     },
     "/users/me": {
       "get": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Get authenticated user profile",
         "description": "Returns the profile of the currently authenticated user identified by the Bearer token.",
         "operationId": "usersGetMe",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "User profile returned successfully.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
                 "example": {
                   "success": true,
                   "data": {
@@ -595,23 +714,33 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
         }
       }
     },
     "/users/me/tickets": {
       "get": {
-        "tags": ["Tickets"],
+        "tags": [
+          "Tickets"
+        ],
         "summary": "List the authenticated user's tickets",
         "description": "Returns open reservations and completed purchases for the user identified by the Bearer token. `RESERVED` items come from reservations; `SOLD` items come from purchases.",
         "operationId": "usersGetMyTickets",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Reservations and purchases returned successfully. `data` is an empty array when the user has neither.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
                 "example": {
                   "success": true,
                   "data": [
@@ -656,13 +785,17 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
         }
       }
     },
     "/tickets": {
       "get": {
-        "tags": ["Tickets"],
+        "tags": [
+          "Tickets"
+        ],
         "summary": "List tickets",
         "description": "Returns the ticket catalog. `data` is an empty array when there are no tickets.",
         "operationId": "ticketsList",
@@ -671,7 +804,9 @@
             "description": "Ticket catalog returned successfully.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
                 "example": {
                   "success": true,
                   "data": [
@@ -696,7 +831,9 @@
     },
     "/tickets/{id}": {
       "get": {
-        "tags": ["Tickets"],
+        "tags": [
+          "Tickets"
+        ],
         "summary": "Get a ticket",
         "description": "Returns a ticket product. `quantity` is the total stock.",
         "operationId": "ticketsGetById",
@@ -717,7 +854,9 @@
             "description": "Ticket returned successfully.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
                 "example": {
                   "success": true,
                   "data": {
@@ -739,61 +878,9 @@
             "description": "No ticket exists with the given id.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
-                "example": {
-                  "success": false,
-                  "data": [],
-                  "message": "Ticket not found.",
-                  "code": "TICKET_NOT_FOUND"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tickets/{id}/quantity": {
-      "get": {
-        "tags": ["Tickets"],
-        "summary": "Get ticket quantity by status",
-        "description": "Returns how many units are available, reserved, and sold. `reserved` is the sum of active reservations, `sold` is the sum of completed purchases, and `available` is the ticket's total stock minus those two.",
-        "operationId": "ticketsGetQuantity",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "Ticket cuid",
-            "schema": {
-              "type": "string",
-              "example": "clx0ticket0001abcdefghijk"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Quantity by status returned successfully.",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
-                "example": {
-                  "success": true,
-                  "data": {
-                    "available": 80,
-                    "reserved": 5,
-                    "sold": 15
-                  },
-                  "message": "Ticket quantity fetched successfully.",
-                  "code": "TICKET_QUANTITY_FETCHED"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "No ticket exists with the given id.",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "example": {
                   "success": false,
                   "data": [],
@@ -808,11 +895,17 @@
     },
     "/tickets/{id}/reservation": {
       "get": {
-        "tags": ["Tickets"],
+        "tags": [
+          "Tickets"
+        ],
         "summary": "Get the authenticated user's reservation",
         "description": "Returns the open reservation of the user identified by the Bearer token for this ticket. A completed purchase is not a reservation.",
         "operationId": "ticketsGetReservation",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
@@ -830,7 +923,9 @@
             "description": "Reservation returned successfully.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
                 "example": {
                   "success": true,
                   "data": {
@@ -856,12 +951,16 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
           "404": {
             "description": "The ticket does not exist, or the authenticated user has no open reservation for it.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "examples": {
                   "ticketNotFound": {
                     "summary": "Ticket does not exist",
@@ -890,11 +989,17 @@
     },
     "/tickets/{id}/buy": {
       "post": {
-        "tags": ["Tickets"],
+        "tags": [
+          "Tickets"
+        ],
         "summary": "Reserve tickets",
         "description": "Starts a reservation for the user identified by the Bearer token. Does not create a purchase. `quantity` defaults to 1 when the body is omitted.",
         "operationId": "ticketsBuy",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
@@ -930,7 +1035,9 @@
             "description": "Reservation created. Status is RESERVED.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
                 "example": {
                   "success": true,
                   "data": {
@@ -956,12 +1063,16 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
           "404": {
             "description": "No ticket exists with the given id.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "example": {
                   "success": false,
                   "data": [],
@@ -975,7 +1086,9 @@
             "description": "There is not enough stock, or the user already has an open reservation for this ticket.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "examples": {
                   "unavailable": {
                     "summary": "Not enough available units",
@@ -999,17 +1112,25 @@
               }
             }
           },
-          "422": { "$ref": "#/components/responses/ValidationError" }
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
         }
       }
     },
     "/tickets/{id}/confirm": {
       "post": {
-        "tags": ["Tickets"],
+        "tags": [
+          "Tickets"
+        ],
         "summary": "Confirm a reservation",
         "description": "Confirms the open reservation of the user identified by the Bearer token. Creates a purchase with status SOLD and removes the reservation.",
         "operationId": "ticketsConfirm",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
@@ -1027,7 +1148,9 @@
             "description": "Purchase confirmed. Status is SOLD.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
                 "example": {
                   "success": true,
                   "data": {
@@ -1053,12 +1176,16 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
           "404": {
             "description": "The ticket does not exist, or the authenticated user has no open reservation for it.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "examples": {
                   "ticketNotFound": {
                     "summary": "Ticket does not exist",
@@ -1086,7 +1213,9 @@
             "description": "The authenticated user already has a completed purchase for this ticket.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "example": {
                   "success": false,
                   "data": [],
@@ -1101,11 +1230,17 @@
     },
     "/tickets/{id}/cancel": {
       "post": {
-        "tags": ["Tickets"],
+        "tags": [
+          "Tickets"
+        ],
         "summary": "Cancel a reservation",
         "description": "Deletes the open reservation of the user identified by the Bearer token and returns that quantity to the available stock. Does not change a completed purchase.",
         "operationId": "ticketsCancel",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
@@ -1123,7 +1258,9 @@
             "description": "Reservation cancelled. The returned reservation is the one that was removed.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
                 "example": {
                   "success": true,
                   "data": {
@@ -1149,12 +1286,16 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
           "404": {
             "description": "The ticket does not exist, or the authenticated user has no open reservation for it.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "examples": {
                   "ticketNotFound": {
                     "summary": "Ticket does not exist",
@@ -1182,7 +1323,9 @@
             "description": "The purchase was already confirmed, so the reservation can no longer be cancelled.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "example": {
                   "success": false,
                   "data": [],

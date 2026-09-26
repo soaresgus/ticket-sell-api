@@ -1,7 +1,7 @@
 import type { PrismaClient } from "../../generated/prisma/client.js";
 
 export class UsersRepository {
-    constructor(private readonly prisma: PrismaClient) {}
+    constructor(private readonly prisma: PrismaClient) { }
 
     create(data: { name: string; email: string; password: string }) {
         return this.prisma.user.create({
@@ -22,5 +22,27 @@ export class UsersRepository {
                 email: email
             },
         });
+    }
+
+    async findTicketsByUserId(userId: string) {
+        const reservations = await this.prisma.ticketReservation.findMany({
+            where: {
+                userId: userId
+            },
+            include: {
+                Ticket: true
+            }
+        });
+
+        const purchases = await this.prisma.ticketPurchaser.findMany({
+            where: {
+                userId: userId
+            },
+            include: {
+                Ticket: true
+            }
+        });
+
+        return { reservations, purchases };
     }
 }
